@@ -76,10 +76,10 @@ func init() {
 func SetUp() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
+
+		var parentSpan opentracing.Span
+
 		if JaegerOpen == true {
-
-			var parentSpan opentracing.Span
-
 			spCtx, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(c.Request.Header))
 			if err != nil {
 				parentSpan = opentracing.GlobalTracer().StartSpan(c.Request.URL.Path)
@@ -96,7 +96,12 @@ func SetUp() gin.HandlerFunc {
 			c.Set("Tracer", opentracing.GlobalTracer())
 			c.Set("ParentSpanContext", parentSpan.Context())
 		}
+
 		c.Next()
+
+		// add tags
+		if JaegerOpen == true {
+			parentSpan.SetTag("http.status_code", c.Writer.Status())
+		}
 	}
 }
-
