@@ -93,8 +93,8 @@ func SetUp() gin.HandlerFunc {
 				)
 				defer parentSpan.Finish()
 			}
-			//c.Set("Tracer", tracer)
-			//c.Set("ParentSpanContext", parentSpan.Context())
+			c.Set("Tracer", opentracing.GlobalTracer())
+			c.Set("ParentSpanContext", parentSpan.Context())
 		}
 		c.Next()
 	}
