@@ -77,31 +77,25 @@ func SetUp() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
-		var parentSpan opentracing.Span
+		var serverSpan opentracing.Span
 
 		if JaegerOpen == true {
-			spCtx, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(c.Request.Header))
-			if err != nil {
-				parentSpan = opentracing.GlobalTracer().StartSpan(c.Request.URL.Path)
-				defer parentSpan.Finish()
-			} else {
-				parentSpan = opentracing.StartSpan(
-					c.Request.URL.Path,
-					opentracing.ChildOf(spCtx),
-					opentracing.Tag{Key: string(ext.Component), Value: "HTTP"},
-					ext.SpanKindRPCServer,
-				)
-				defer parentSpan.Finish()
-			}
+			operationName := c.Request.Method + " " + c.Request.URL.Path
+			wireContext, _ := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(c.Request.Header))
+			serverSpan = opentracing.StartSpan(
+				operationName,
+				ext.RPCServerOption(wireContext),
+				opentracing.Tag{Key: string(ext.Component), Value: "HTTP"})
+			defer serverSpan.Finish()
 			c.Set("Tracer", opentracing.GlobalTracer())
-			c.Set("ParentSpanContext", parentSpan.Context())
+			c.Set("ParentSpanContext", serverSpan.Context())
 		}
 
 		c.Next()
 
 		// add tags
 		if JaegerOpen == true {
-			parentSpan.SetTag("http.status_code", c.Writer.Status())
+			serverSpan.SetTag("http.status_code", c.Writer.Status())
 		}
 	}
 }
