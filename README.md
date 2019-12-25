@@ -1,4 +1,4 @@
-# example
+# example for jaeger
 ```go
 package main
 
@@ -47,5 +47,32 @@ func main() {
 	r.GET("/child", child)
 
 	r.Run(":8080")
+}
+```
+
+
+# example for prometheus
+```go
+package main
+
+import (
+        "github.com/gin-gonic/gin"
+        ginprom "github.com/cabbageGG/gin-middleware/prometheus"
+        "github.com/prometheus/client_golang/prometheus/promhttp"
+)
+
+func main() {
+        r := gin.Default()
+
+        r.Use(ginprom.NewGinPrometheus(r).Middleware()) // 添加prometheus 监控
+        r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+        
+        r.GET("/", func(c *gin.Context){
+                c.JSON(200, gin.H{"message": "success"})
+        })
+        r.GET("/test/", func(c *gin.Context){
+                c.JSON(500, gin.H{"message": "error"})
+        })
+        r.Run()
 }
 ```
