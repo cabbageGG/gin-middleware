@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
+	jaegerClient "github.com/uber/jaeger-client-go"
 )
 
 func SetUp() gin.HandlerFunc {
@@ -23,7 +24,13 @@ func SetUp() gin.HandlerFunc {
 				opentracing.Tag{Key: string(ext.Component), Value: "HTTP"})
 			defer serverSpan.Finish()
 			c.Set("Tracer", opentracing.GlobalTracer())
-			c.Set("SpanContext", opentracing.ContextWithSpan(context.Background(), serverSpan))
+			c.Set("SpanHttpContext", opentracing.ContextWithSpan(context.Background(), serverSpan))
+
+			spanContext := serverSpan.Context()
+			if spanContext, ok := spanContext.(jaegerClient.SpanContext); ok {
+				c.Set("trace_id", spanContext.TraceID().String())
+				c.Set("span_id", spanContext.SpanID().String())
+			}
 		}
 
 		c.Next()

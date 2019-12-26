@@ -65,8 +65,8 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func HttpDo(c *gin.Context, ops HttpOps) ([]byte, error) {
 	// get context.Context
-	SpanContext, _ := c.Get("SpanContext")
-	ctx, ok := SpanContext.(context.Context)
+	SpanHttpContext, _ := c.Get("SpanHttpContext")
+	ctx, ok := SpanHttpContext.(context.Context)
 	if !ok {
 		log.Println("ctx not ok", ctx)
 		ctx = context.Background()
