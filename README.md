@@ -82,11 +82,11 @@ func main() {
 package main
 
 import (
-		"time"
-		
+        "time"
+
         "github.com/gin-gonic/gin"
-		ginzap "github.com/cabbageGG/gin-middleware/log"
-		"go.uber.org/zap"
+        ginzap "github.com/cabbageGG/gin-middleware/log"
+        "go.uber.org/zap"
 )
 
 func main() {
@@ -95,8 +95,8 @@ func main() {
         logger, _ := zap.NewProduction()  //实例化zap logger
         defer logger.Sync()
         r.Use(ginzap.Ginzap(logger, time.RFC3339, true))  // 添加日志中间件，在请求来时，自动打印相应请求信息,包括trace信息
-		r.Use(ginzap.RecoveryWithZap(logger, true))       // 日志错误恢复中间件
-        
+        r.Use(ginzap.RecoveryWithZap(logger, true))       // 日志错误恢复中间件
+
         r.GET("/", func(c *gin.Context){
                 c.JSON(200, gin.H{"message": "success"})
         })
